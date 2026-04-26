@@ -7,6 +7,7 @@ pipeline {
 
     stages {
 
+        // ❌ You can REMOVE this stage completely (Jenkins already clones)
         stage('Clone Repository') {
             steps {
                 git branch: 'main', url:'https://github.com/Siripo591/docker.git'
@@ -15,9 +16,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    docker.build("${DOCKER_IMAGE}:latest")
-                }
+                bat "docker build -t %DOCKER_IMAGE%:latest ."
             }
         }
 
@@ -28,18 +27,14 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                script {
-                    docker.withRegistry('', 'dockerhub-creds') {
-                        docker.image("${DOCKER_IMAGE}:latest").push()
-                    }
-                }
+                bat "docker push %DOCKER_IMAGE%:latest"
             }
         }
     }
